@@ -35,6 +35,7 @@ DATA_PROCESSED_DIR: Path = DATA_DIR / "processed"
 
 REPORTS_DIR: Path = PROJECT_ROOT / "reports"
 FIGURES_DIR: Path = REPORTS_DIR / "figures"
+TABLES_DIR: Path = REPORTS_DIR / "tables"
 MODELS_DIR: Path = PROJECT_ROOT / "models"
 
 #: Nome do arquivo bruto (mantido intacto, conforme D5).
@@ -54,6 +55,14 @@ RAW_FILE_SHA256: str = (
 PROCESSED_DATASET_PATH: Path = DATA_PROCESSED_DIR / "students_processed.csv"
 QUALITY_REPORT_JSON: Path = REPORTS_DIR / "data_quality_report.json"
 QUALITY_REPORT_MD: Path = REPORTS_DIR / "data_quality_report.md"
+
+#: Indices da divisao treino/teste, congelados para reuso na Fase 3.
+SPLIT_INDICES_PATH: Path = DATA_PROCESSED_DIR / "train_test_split.json"
+
+#: Saidas da Fase 2 (comparacao de modelos e cenarios).
+CV_COMPARISON_CSV: Path = TABLES_DIR / "phase2_cv_comparison.csv"
+TUNED_COMPARISON_CSV: Path = TABLES_DIR / "phase2_tuned_comparison.csv"
+PHASE2_REPORT_MD: Path = REPORTS_DIR / "phase2_model_comparison.md"
 
 MODEL_PATH: Path = MODELS_DIR / "model.joblib"
 MODEL_METADATA_PATH: Path = MODELS_DIR / "model_metadata.json"
@@ -182,6 +191,29 @@ NUMERIC_FEATURES: tuple[str, ...] = (
 # Cenarios de features (D2 / D3 / D7)
 # --------------------------------------------------------------------------- #
 
+#: Features derivadas do 1o semestre, criadas por ``src.features``.
+#: Sao transformacoes **linha a linha** (sem estatisticas entre linhas), portanto
+#: nao introduzem vazamento entre treino e teste.
+ENGINEERED_SEMESTER1_FEATURES: tuple[str, ...] = (
+    "taxa_aprovacao_1sem",
+    "disciplinas_nao_aprovadas_1sem",
+    "razao_avaliacoes_inscrito_1sem",
+)
+
+#: Features derivadas que dependem do 2o semestre (apenas no cenario Completo).
+ENGINEERED_SEMESTER2_FEATURES: tuple[str, ...] = (
+    "taxa_aprovacao_2sem",
+    "disciplinas_nao_aprovadas_2sem",
+    "delta_taxa_aprovacao",
+    "delta_grau",
+    "total_sem_avaliacoes",
+)
+
+#: Todas as features derivadas.
+ENGINEERED_FEATURES: tuple[str, ...] = (
+    ENGINEERED_SEMESTER1_FEATURES + ENGINEERED_SEMESTER2_FEATURES
+)
+
 #: Cenario 1 - Early Warning: elegivel para deploy por permitir intervencao cedo.
 EARLY_WARNING_FEATURES: tuple[str, ...] = (
     CATEGORICAL_FEATURES
@@ -189,10 +221,15 @@ EARLY_WARNING_FEATURES: tuple[str, ...] = (
     + ADMISSION_FEATURES
     + SEMESTER1_FEATURES
     + MACRO_FEATURES
+    + ENGINEERED_SEMESTER1_FEATURES
 )
 
 #: Cenario 2 - Completo: acrescenta o 2o semestre (benchmark).
-FULL_FEATURES: tuple[str, ...] = EARLY_WARNING_FEATURES + SEMESTER2_FEATURES
+FULL_FEATURES: tuple[str, ...] = (
+    EARLY_WARNING_FEATURES
+    + SEMESTER2_FEATURES
+    + ENGINEERED_SEMESTER2_FEATURES
+)
 
 #: Cenario Early Warning sem as variaveis financeiras (ablacao - D3).
 EARLY_WARNING_NO_FINANCIAL_FEATURES: tuple[str, ...] = tuple(
@@ -211,12 +248,48 @@ FULL_NO_MACRO_FEATURES: tuple[str, ...] = tuple(
     column for column in FULL_FEATURES if column not in MACRO_FEATURES
 )
 
+#: Registro dos cenarios avaliados na Fase 2.
+#: Chave = nome curto usado em relatorios; valor = descricao + colunas.
+SCENARIOS: dict[str, dict] = {
+    "early_warning": {
+        "label": "Early Warning",
+        "description": "Cadastro, socioeconomico, financeiro, ingresso e 1o semestre.",
+        "columns": EARLY_WARNING_FEATURES,
+    },
+    "full": {
+        "label": "Completo",
+        "description": "Early Warning + variaveis do 2o semestre (benchmark).",
+        "columns": FULL_FEATURES,
+    },
+    "early_warning_no_financial": {
+        "label": "Early Warning sem financeiras",
+        "description": "Ablacao D3: remove Devedor e MensalidadesEmDia.",
+        "columns": EARLY_WARNING_NO_FINANCIAL_FEATURES,
+    },
+    "early_warning_no_macro": {
+        "label": "Early Warning sem macro",
+        "description": "Ablacao D7: remove TaxaDesemprego, TaxaInflacao e PIB.",
+        "columns": EARLY_WARNING_NO_MACRO_FEATURES,
+    },
+    "full_no_macro": {
+        "label": "Completo sem macro",
+        "description": "Ablacao D7 no cenario Completo.",
+        "columns": FULL_NO_MACRO_FEATURES,
+    },
+}
+
 # --------------------------------------------------------------------------- #
 # Divisao, validacao cruzada e metricas (D8)
 # --------------------------------------------------------------------------- #
 
 TEST_SIZE: float = 0.30
 N_SPLITS: int = 5
+
+#: Paralelismo da validacao cruzada e da busca de hiperparametros.
+#: Padrao ``1`` (serial): mais lento, porem deterministico e sem os avisos de
+#: ``multiprocessing`` que aparecem em ambientes com restricao de processos
+#: (ex.: sandbox do VS Code via snap). Use ``-1`` para todos os nucleos.
+N_JOBS: int = 1
 
 #: Classe positiva em todas as metricas: evasao (``Desistente``).
 POSITIVE_LABEL: int = 1

@@ -6,9 +6,9 @@
 >
 > | Fase | Escopo | Situação |
 > |---|---|---|
-> | 1 | Ambiente, organização, carga, limpeza, correção, testes, relatório | ✅ código concluído (execução pendente do ambiente Python 3.12) |
-> | 2 | Baseline, modelos, validação cruzada, cenários e ablações | ⏳ aguardando autorização |
-> | 3 | Seleção do modelo, teste único, over/underfitting, artefatos | ⏳ |
+> | 1 | Ambiente, organização, carga, limpeza, correção, testes, relatório | ✅ concluída e executada |
+> | 2 | Baseline, modelos, validação cruzada, cenários e ablações | ✅ concluída (ver §22) |
+> | 3 | Seleção do modelo, teste único, over/underfitting, artefatos | ⏳ aguardando autorização |
 > | 4 | Streamlit, documentação, deploy, roteiro do vídeo | ⏳ |
 >
 > As decisões **D1–D10** foram confirmadas pelo autor e estão registradas na §20. As seções
@@ -629,8 +629,9 @@ tech-challenge-fase3/
 - **Correção aplicada após a primeira execução:** a checagem de consistência passou a parear
   cada nota com o `Aprovado` do **mesmo semestre** (`GRADE_APPROVED_COLUMNS`). Antes, a nota do
   2º semestre era comparada com o aprovado do 1º, o que gerava 42 falsas violações.
-- Os módulos `features.py`, `preprocessing.py`, `train.py`, `evaluate.py`, `predict.py` e
-  `app/streamlit_app.py` pertencem às Fases 2–4 e **ainda não existem**.
+- **Fase 2:** implementados `features.py`, `preprocessing.py`, `evaluate.py` e `train.py`,
+  com testes novos (`test_features.py` e `test_preprocessing.py`) — **86 testes passando**.
+  Ainda **não existem**: `predict.py` (Fase 3) e `app/streamlit_app.py` (Fase 4).
 
 ---
 
@@ -639,20 +640,21 @@ tech-challenge-fase3/
 **Código e reprodutibilidade**
 - [x] Ambiente virtual (`.venv`) com **Python 3.12.14** e `requirements.txt` instalado.
 - [x] `RANDOM_STATE` centralizado em `src/config.py`.
-- [ ] `Pipeline` + `ColumnTransformer` cobrindo imputação, escala e encoding. *(Fase 2)*
-- [ ] Zero vazamento: nenhuma estatística ajustada no conjunto de teste. *(Fase 2)*
+- [x] `Pipeline` + `ColumnTransformer` cobrindo imputação, escala e encoding.
+- [x] Zero vazamento: nenhuma estatística ajustada no conjunto de teste.
 - [x] Correção das colunas `...SemestreGrau` implementada e coberta por testes automatizados.
 - [x] Base bruta preservada, com verificação de integridade por SHA-256.
 - [x] Relatório de qualidade de dados produzido pelo pipeline. *(executado)*
 - [ ] Notebook `01_eda_e_modelagem.ipynb` executável de ponta a ponta no VS Code. *(Fases 2–3)*
 
 **Modelagem**
-- [ ] Divisão estratificada 70/30 documentada.
-- [ ] `StratifiedKFold` (k=5) com o pipeline completo como estimador.
-- [ ] Comparação entre `DummyClassifier`, Regressão Logística, Random Forest e Gradient Boosting.
-- [ ] Cenários **Early Warning × Completo** e ablações (financeiras e macroeconômicas).
-- [ ] Métricas: Accuracy, Precision, Recall, F1, **F2**, ROC-AUC e matriz de confusão (classe positiva = evasão).
-- [ ] Análise de overfitting/underfitting com curvas de aprendizado/validação e gap treino−CV.
+- [x] Divisão estratificada 70/30 documentada e **congelada** em disco (`train_test_split.json`).
+- [x] `StratifiedKFold` (k=5) com o pipeline completo como estimador.
+- [x] Comparação entre `DummyClassifier`, Regressão Logística, Random Forest e Gradient Boosting.
+- [x] Cenários **Early Warning × Completo** e ablações (financeiras e macroeconômicas).
+- [x] Métricas: Accuracy, Precision, Recall, F1, **F2**, ROC-AUC (classe positiva = evasão).
+- [ ] Matriz de confusão do modelo final. *(Fase 3)*
+- [ ] Análise de overfitting/underfitting com curvas de aprendizado/validação. *(Fase 3 — o gap treino−CV já está reportado na §22)*
 - [ ] Tabela final treino × CV × teste e escolha do modelo justificada por escrito.
 
 **Deploy**
@@ -698,3 +700,70 @@ tech-challenge-fase3/
 ## 21. Referências internas
 - Enunciado: `docs/MLET - Prova Substitutiva - Fase 3.pdf`
 - Base: `data/StudentsPrepared.xlsx`
+
+---
+
+## 22. Resultados da Fase 2 (comparação de modelos e cenários)
+
+Executado com `python -m src.train`. Divisão congelada: **3.096 linhas de treino** e
+**1.327 de teste** — o teste **não foi avaliado** (D8).
+
+### 22.1 Alvo principal (D1) — F2 na validação cruzada, após ajuste
+
+| Cenário | Modelo | Features | Treino | CV | Desvio | Gap |
+|---|---|---|---|---|---|---|
+| Completo | `logistic_balanced` | 35 | 0,8115 | **0,7945** | 0,0181 | 0,0170 |
+| Completo sem macro | `logistic_balanced` | 32 | 0,8088 | 0,7913 | 0,0191 | 0,0174 |
+| Completo sem macro | `random_forest_balanced` | 32 | 0,8212 | 0,7867 | 0,0250 | 0,0345 |
+| Completo | `random_forest_balanced` | 35 | 0,8236 | 0,7800 | 0,0256 | 0,0436 |
+| Early Warning | `random_forest_balanced` | 24 | 0,8302 | 0,7721 | 0,0175 | 0,0581 |
+| Early Warning | `logistic_balanced` | 24 | 0,7822 | **0,7712** | 0,0200 | **0,0110** |
+| Early Warning sem macro | `logistic_balanced` | 21 | — | 0,7697 | — | 0,0104 |
+| Early Warning sem financeiras | `logistic_balanced` | 22 | — | 0,7487 | — | 0,0062 |
+| (qualquer) | `dummy_prior` | — | — | 0,0000 | — | 0,0000 |
+
+> Valores de treino/gap omitidos onde o modelo não ficou entre os seis melhores.
+
+### 22.2 Conclusões da Fase 2
+
+1. **`class_weight="balanced"` é a maior alavanca isolada.** Na Regressão Logística o F2
+   sobe de ~0,699 para ~0,769 — ganho de **7 p.p.**, superior a qualquer ajuste de
+   hiperparâmetro.
+2. **A Regressão Logística balanceada domina todos os cenários**, com a melhor combinação
+   de desempenho e estabilidade (gap treino−CV de apenas ~0,01–0,02).
+3. **Random Forest sofre overfitting severo com parâmetros padrão:** F2 de treino = **1,0000**
+   contra **0,7419** na validação (gap 0,2581). O ajuste de `max_depth`/`min_samples_leaf`
+   reduz o gap para 0,0436 e ainda **melhora** a validação (0,7419 → 0,7800).
+4. **Gradient Boosting** também mostra gap alto (0,1485 no cenário Completo), mas entrega a
+   maior precision (0,8421).
+5. **O cenário Completo supera o Early Warning em apenas ~2,3 p.p. de F2** (0,7945 vs.
+   0,7712). O custo é esperar o 2º semestre, atrasando a intervenção → mantém-se a
+   recomendação de **Early Warning para o deploy** (D2), com o Completo como benchmark.
+6. **Remover as variáveis financeiras piora bastante:** 0,7712 → 0,7487 (−2,25 p.p.).
+   `Devedor` e `MensalidadesEmDia` carregam sinal preditivo real; **permanecem**, com a
+   dependência temporal documentada como **hipótese** (D3).
+7. **Remover as variáveis macroeconômicas quase não altera o resultado:** 0,7712 → 0,7697
+   (−0,15 p.p.) no Early Warning e 0,7945 → 0,7913 (−0,32 p.p.) no Completo — contribuição
+   **marginal** (D7), o que também elimina o risco de vazamento temporal.
+8. **Alvo de sensibilidade** (`Desistente` vs. `Graduado`): desempenho bem maior
+   (F2 até **0,8737**), como esperado ao remover a classe ambígua `Matriculado`.
+
+### 22.3 Artefatos gerados
+
+| Arquivo | Conteúdo |
+|---|---|
+| `reports/phase2_model_comparison.md` | Relatório completo da Fase 2 |
+| `reports/tables/phase2_cv_comparison.csv` | Métricas × cenários × modelos × alvos |
+| `reports/tables/phase2_tuned_comparison.csv` | Recorte do alvo principal |
+| `reports/figures/phase2_*.png` | 13 figuras (F2, recall, ROC-AUC; treino vs. CV) |
+| `data/processed/train_test_split.json` | Índices da divisão congelada |
+
+### 22.4 Notas técnicas
+
+- A divisão treino/teste foi **congelada em disco** para que a Fase 3 use exatamente o mesmo
+  conjunto de teste.
+- `N_JOBS = 1` por padrão: o paralelismo do `joblib` gera erros de `multiprocessing` neste
+  ambiente (sandbox do VS Code). O ganho medido com `n_jobs=-1` era pequeno (~30% em Random
+  Forest), o que não compensa a instabilidade.
+- O aviso `OptimizeWarning: Unknown solver options: iprint` (scipy novo × scikit-learn 1.5.2)
+  é benigno e foi filtrado em `src/train.py` e no `pytest.ini`.

@@ -10,10 +10,10 @@ O projeto cobre o ciclo completo: análise exploratória, limpeza e *feature eng
 treino com validação cruzada, análise de *overfitting*/*underfitting*, serialização do
 modelo e **deploy de uma aplicação Streamlit** para uso interativo.
 
-> Status atual: **Fase 1 concluída e executada** — ambiente Python 3.12, carga, validação de
-> schema, correção de escala das notas, limpeza, criação do alvo, testes automatizados
-> (67 passando) e relatório de qualidade gerado. O treinamento dos modelos e a aplicação
-> Streamlit ainda **não** foram implementados. Detalhes em [`PROJECT_PLAN.md`](PROJECT_PLAN.md).
+> Status atual: **Fases 1 e 2 concluídas e executadas** — ambiente Python 3.12, pipeline de
+dados com relatório de qualidade, feature engineering, `ColumnTransformer`, comparação de
+6 modelos em 5 cenários com validação cruzada (86 testes passando). Faltam a seleção final do
+modelo, o deploy em Streamlit e o vídeo. Detalhes em [`PROJECT_PLAN.md`](PROJECT_PLAN.md).
 
 ## 🎓 Contexto acadêmico
 
@@ -53,23 +53,27 @@ tech-challenge-fase3/
 │   ├── cleaning.py                # notas, duplicatas, alvo                   ✅ Fase 1
 │   ├── data_loader.py             # carga + integridade SHA-256               ✅ Fase 1
 │   ├── build_dataset.py           # orquestra e gera o relatório              ✅ Fase 1
-│   ├── features.py                # features derivadas                        ⏳ Fase 2
-│   ├── preprocessing.py           # ColumnTransformer / Pipeline              ⏳ Fase 2
-│   ├── train.py                   # CV + comparação de modelos                ⏳ Fase 2
-│   ├── evaluate.py                # métricas, curvas, thresholds              ⏳ Fase 3
+│   ├── features.py                # features derivadas (linha a linha)       ✅ Fase 2
+│   ├── preprocessing.py           # ColumnTransformer / Pipeline              ✅ Fase 2
+│   ├── evaluate.py                # métricas, tabelas e gráficos             ✅ Fase 2
+│   ├── train.py                   # CV + GridSearch + cenários               ✅ Fase 2
 │   └── predict.py                 # inferência                                ⏳ Fase 3
 ├── app/
 │   └── streamlit_app.py           # aplicação de deploy                       ⏳ Fase 4
 ├── models/                        # model.joblib + metadados                   ⏳ Fase 3
 ├── reports/
-│   ├── figures/                   # tabelas e gráficos                        ⏳ Fase 2/3
+│   ├── tables/                    # CSV com os resultados da Fase 2           ✅ Fase 2
+│   ├── figures/                   # gráficos (Fase 2: 13 PNGs)                ✅ Fase 2
+│   ├── phase2_model_comparison.md # relatório de modelos e cenários           ✅ Fase 2
 │   ├── data_quality_report.md     # relatório de qualidade                    ✅ Fase 1
 │   └── data_quality_report.json   # versão machine-readable                    ✅ Fase 1
 ├── tests/
 │   ├── test_grade_scale.py        # núcleo da correção (sem pandas)           ✅ Fase 1
 │   ├── test_cleaning.py           # limpeza, duplicatas e alvo                 ✅ Fase 1
 │   ├── test_schema.py             # validação de schema                        ✅ Fase 1
-│   └── test_data_integrity.py     # SHA-256 da base bruta                     ✅ Fase 1
+│   ├── test_data_integrity.py     # SHA-256 da base bruta                     ✅ Fase 1
+│   ├── test_features.py           # features derivadas                         ✅ Fase 2
+│   └── test_preprocessing.py      # ColumnTransformer e Pipeline              ✅ Fase 2
 ├── requirements.txt               ✅ Fase 1
 ├── pytest.ini                     ✅ Fase 1
 ├── PROJECT_PLAN.md
@@ -154,10 +158,15 @@ pytest 8.3.4
    pytest
    ```
 
-6. Executar o notebook de análise no VS Code (Fase 2):
+6. Executar a Fase 2 (compara modelos e cenários; leva alguns minutos):
+   ```bash
+   python -m src.train
+   ```
+
+7. Executar o notebook de análise no VS Code (Fase 3):
    `notebooks/01_eda_e_modelagem.ipynb`
 
-7. Executar a aplicação localmente (Fase 4):
+8. Executar a aplicação localmente (Fase 4):
    ```bash
    streamlit run app/streamlit_app.py
    ```
@@ -210,3 +219,31 @@ Artefatos gerados:
 
 - `data/processed/students_processed.csv` (4.423 linhas x 31 colunas)
 - `reports/data_quality_report.md` e `reports/data_quality_report.json`
+
+**Resultado da execução da Fase 2**
+
+Comparação de 6 modelos × 5 cenários, com `StratifiedKFold(5)` e ajuste de hiperparâmetros
+por **F2-score**. O conjunto de teste (1.327 linhas) **não** foi avaliado — está congelado
+para a Fase 3.
+
+| Cenário | Melhor modelo | F2 (CV) | Recall | Gap treino−CV |
+|---|---|---|---|---|
+| Completo | `logistic_balanced` | **0,7945** | 0,8048 | 0,0170 |
+| Completo sem macro | `logistic_balanced` | 0,7913 | 0,7998 | 0,0174 |
+| Early Warning | `logistic_balanced` | **0,7712** | 0,7817 | **0,0110** |
+| Early Warning sem financeiras | `logistic_balanced` | 0,7487 | 0,7626 | 0,0062 |
+| *(referência)* | `dummy_prior` | 0,0000 | 0,0000 | — |
+
+**Principais conclusões:**
+
+- `class_weight="balanced"` é a maior alavanca: +7 p.p. de F2 na Regressão Logística.
+- A **Regressão Logística balanceada** vence em todos os cenários, com o menor gap
+  treino−validação (~0,01) — ou seja, **não** apresenta overfitting.
+- O **Random Forest padrão sofre overfitting severo** (F2 de treino 1,0000 vs. 0,7419 na
+  validação); o ajuste de profundidade corrige e ainda melhora a validação para 0,7800.
+- O cenário **Completo supera o Early Warning em apenas ~2,3 p.p.**, ao custo de esperar o
+  2º semestre → o **Early Warning** segue como candidato ao deploy (D2).
+- Remover as variáveis **financeiras** piora o modelo (−2,25 p.p.); remover as **macroeconômicas**
+  quase não muda nada (−0,15 p.p.) — contribuição marginal (D7).
+
+Relatório completo: [`reports/phase2_model_comparison.md`](reports/phase2_model_comparison.md)
