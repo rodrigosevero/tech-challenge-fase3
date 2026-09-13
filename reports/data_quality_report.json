@@ -1,0 +1,317 @@
+{
+  "generated_at": "2026-09-13T02:59:18+00:00",
+  "random_state": 42,
+  "steps": [],
+  "source": {
+    "raw_path": "/var/www/html/tech-challenge-fase3/data/raw/StudentsPrepared.xlsx",
+    "original_path_preserved": "/var/www/html/tech-challenge-fase3/data/StudentsPrepared.xlsx",
+    "sha256": "10687fd56d075289d7cc112592d977d56c3c88df90d6a2eb6deeb7f6be1206ba",
+    "sha256_matches_expected": true
+  },
+  "schema": {
+    "ok": true,
+    "n_rows": 4424,
+    "n_cols": 28,
+    "missing_columns": [],
+    "unexpected_columns": [],
+    "target_classes": {
+      "Graduado": 2209,
+      "Desistente": 1421,
+      "Matriculado": 794
+    },
+    "unexpected_target_classes": [],
+    "dtypes": {
+      "EstadoCivil": "object",
+      "Curso": "object",
+      "QualificacaoAnterior": "object",
+      "QualificacaoAnteriorGrau": "float64",
+      "Nacionalidade": "object",
+      "NotaAdmissao": "float64",
+      "NecessidadesEspeciais": "int64",
+      "Devedor": "int64",
+      "MensalidadesEmDia": "int64",
+      "Genero": "object",
+      "Bolsista": "int64",
+      "International": "int64",
+      "UnidadesCurriculares1SemestreCreditado": "int64",
+      "UnidadesCurriculares1SemestreInscrito": "int64",
+      "UnidadesCurriculares1SemestreAvaliacoes": "int64",
+      "UnidadesCurriculares1SemestreAprovado": "int64",
+      "UnidadesCurriculares1SemestreGrau": "float64",
+      "UnidadesCurriculares1SemestreSemAvaliacoes": "int64",
+      "UnidadesCurriculares2SemestreCreditado": "int64",
+      "UnidadesCurriculares2SemestreInscrito": "int64",
+      "UnidadesCurriculares2SemestreAvaliacoes": "int64",
+      "UnidadesCurriculares2SemestreAprovado": "int64",
+      "UnidadesCurriculares2SemestreGrau": "float64",
+      "UnidadesCurriculares2SemestreSemAvaliacoes": "int64",
+      "TaxaDesemprego": "float64",
+      "TaxaInflacao": "float64",
+      "PIB": "float64",
+      "Target": "object"
+    }
+  },
+  "missing_values": {
+    "total_missing_cells": 0,
+    "columns_with_missing": {}
+  },
+  "grade_correction": {
+    "method": "Divisao sucessiva por 10 enquanto |valor| > 20 (consistente com perda do separador decimal)",
+    "columns": {
+      "UnidadesCurriculares1SemestreGrau": {
+        "n_values": 4424,
+        "n_corrected": 1790,
+        "pct_corrected": 40.461,
+        "min_before": 0.0,
+        "max_before": 1.73333333333333e+16,
+        "min_after": 0.0,
+        "max_after": 18.875,
+        "examples": [
+          {
+            "before": 1.34285714285714e+16,
+            "after": 13.428571428571399
+          },
+          {
+            "before": 1.23333333333333e+16,
+            "after": 12.333333333333304
+          },
+          {
+            "before": 1.18571428571428e+16,
+            "after": 11.857142857142803
+          },
+          {
+            "before": 13875.0,
+            "after": 13.875
+          },
+          {
+            "before": 1.23333333333333e+16,
+            "after": 12.333333333333304
+          }
+        ]
+      },
+      "UnidadesCurriculares2SemestreGrau": {
+        "n_values": 4424,
+        "n_corrected": 1675,
+        "pct_corrected": 37.862,
+        "min_before": 0.0,
+        "max_before": 1.85714285714285e+16,
+        "min_after": 0.0,
+        "max_after": 18.571428571428502,
+        "examples": [
+          {
+            "before": 1.36666666666666e+16,
+            "after": 13.6666666666666
+          },
+          {
+            "before": 14345.0,
+            "after": 14.344999999999999
+          },
+          {
+            "before": 1.41428571428571e+16,
+            "after": 14.142857142857096
+          },
+          {
+            "before": 1.32142857142857e+16,
+            "after": 13.2142857142857
+          },
+          {
+            "before": 14545.0,
+            "after": 14.544999999999998
+          }
+        ]
+      }
+    },
+    "consistency_check": {
+      "before": {
+        "UnidadesCurriculares1SemestreGrau": {
+          "grade_column": "UnidadesCurriculares1SemestreGrau",
+          "approved_column": "UnidadesCurriculares1SemestreAprovado",
+          "ok": true,
+          "n_violations": 0,
+          "detail": "linhas com Aprovado == 0 e Grau > 0"
+        },
+        "UnidadesCurriculares2SemestreGrau": {
+          "grade_column": "UnidadesCurriculares2SemestreGrau",
+          "approved_column": "UnidadesCurriculares2SemestreAprovado",
+          "ok": true,
+          "n_violations": 0,
+          "detail": "linhas com Aprovado == 0 e Grau > 0"
+        }
+      },
+      "after": {
+        "UnidadesCurriculares1SemestreGrau": {
+          "grade_column": "UnidadesCurriculares1SemestreGrau",
+          "approved_column": "UnidadesCurriculares1SemestreAprovado",
+          "ok": true,
+          "n_violations": 0,
+          "detail": "linhas com Aprovado == 0 e Grau > 0"
+        },
+        "UnidadesCurriculares2SemestreGrau": {
+          "grade_column": "UnidadesCurriculares2SemestreGrau",
+          "approved_column": "UnidadesCurriculares2SemestreAprovado",
+          "ok": true,
+          "n_violations": 0,
+          "detail": "linhas com Aprovado == 0 e Grau > 0"
+        }
+      }
+    },
+    "consistency_check_note": "Checagem de NAO-REGRESSAO: nao havia violacoes nem antes nem depois, pois os valores corrompidos ocorrem apenas em linhas com Aprovado > 0. Nao deve ser usada isoladamente como prova.",
+    "distribution_validation": [
+      {
+        "column": "UnidadesCurriculares1SemestreGrau",
+        "untouched": {
+          "n": 1916,
+          "mean": 12.4434,
+          "median": 12.25,
+          "min": 9.8,
+          "max": 18.0
+        },
+        "corrected": {
+          "n": 1790,
+          "mean": 12.9796,
+          "median": 12.8571,
+          "min": 10.1667,
+          "max": 18.875
+        },
+        "mean_difference": 0.5362,
+        "all_corrected_within_scale": true,
+        "n_corrupted_integers": 1790,
+        "n_corrupted": 1790,
+        "pct_corrupted_integers": 100.0,
+        "ok": true
+      },
+      {
+        "column": "UnidadesCurriculares2SemestreGrau",
+        "untouched": {
+          "n": 1879,
+          "mean": 12.4557,
+          "median": 12.33,
+          "min": 10.0,
+          "max": 17.6
+        },
+        "corrected": {
+          "n": 1675,
+          "mean": 13.0472,
+          "median": 12.9667,
+          "min": 10.1667,
+          "max": 18.5714
+        },
+        "mean_difference": 0.5915,
+        "all_corrected_within_scale": true,
+        "n_corrupted_integers": 1675,
+        "n_corrupted": 1675,
+        "pct_corrupted_integers": 100.0,
+        "ok": true
+      }
+    ]
+  },
+  "duplicates": {
+    "n_rows_before": 4424,
+    "n_rows_after": 4423,
+    "n_rows_in_duplicate_groups": 2,
+    "n_duplicate_groups": 1,
+    "n_removed": 1
+  },
+  "target": {
+    "classes_originais": {
+      "Graduado": 2209,
+      "Desistente": 1420,
+      "Matriculado": 794
+    },
+    "target_principal": {
+      "desistente_1": 1420,
+      "outros_0": 3003,
+      "total": 4423,
+      "proporcao_positivos": 0.321
+    },
+    "target_sensibilidade": {
+      "desistente_1": 1420,
+      "graduado_0": 2209,
+      "matriculado_excluido": 794,
+      "total": 3629,
+      "proporcao_positivos": 0.3913
+    }
+  },
+  "processed_dataset": {
+    "path": "/var/www/html/tech-challenge-fase3/data/processed/students_processed.csv",
+    "n_rows": 4423,
+    "n_cols": 31,
+    "columns": [
+      "EstadoCivil",
+      "Curso",
+      "QualificacaoAnterior",
+      "QualificacaoAnteriorGrau",
+      "Nacionalidade",
+      "NotaAdmissao",
+      "NecessidadesEspeciais",
+      "Devedor",
+      "MensalidadesEmDia",
+      "Genero",
+      "Bolsista",
+      "International",
+      "UnidadesCurriculares1SemestreCreditado",
+      "UnidadesCurriculares1SemestreInscrito",
+      "UnidadesCurriculares1SemestreAvaliacoes",
+      "UnidadesCurriculares1SemestreAprovado",
+      "UnidadesCurriculares1SemestreGrau",
+      "UnidadesCurriculares1SemestreSemAvaliacoes",
+      "UnidadesCurriculares2SemestreCreditado",
+      "UnidadesCurriculares2SemestreInscrito",
+      "UnidadesCurriculares2SemestreAvaliacoes",
+      "UnidadesCurriculares2SemestreAprovado",
+      "UnidadesCurriculares2SemestreGrau",
+      "UnidadesCurriculares2SemestreSemAvaliacoes",
+      "TaxaDesemprego",
+      "TaxaInflacao",
+      "PIB",
+      "Target",
+      "target_class",
+      "target",
+      "target_excl_enrolled"
+    ],
+    "dtypes": {
+      "EstadoCivil": "object",
+      "Curso": "object",
+      "QualificacaoAnterior": "object",
+      "QualificacaoAnteriorGrau": "float64",
+      "Nacionalidade": "object",
+      "NotaAdmissao": "float64",
+      "NecessidadesEspeciais": "int64",
+      "Devedor": "int64",
+      "MensalidadesEmDia": "int64",
+      "Genero": "object",
+      "Bolsista": "int64",
+      "International": "int64",
+      "UnidadesCurriculares1SemestreCreditado": "int64",
+      "UnidadesCurriculares1SemestreInscrito": "int64",
+      "UnidadesCurriculares1SemestreAvaliacoes": "int64",
+      "UnidadesCurriculares1SemestreAprovado": "int64",
+      "UnidadesCurriculares1SemestreGrau": "float64",
+      "UnidadesCurriculares1SemestreSemAvaliacoes": "int64",
+      "UnidadesCurriculares2SemestreCreditado": "int64",
+      "UnidadesCurriculares2SemestreInscrito": "int64",
+      "UnidadesCurriculares2SemestreAvaliacoes": "int64",
+      "UnidadesCurriculares2SemestreAprovado": "int64",
+      "UnidadesCurriculares2SemestreGrau": "float64",
+      "UnidadesCurriculares2SemestreSemAvaliacoes": "int64",
+      "TaxaDesemprego": "float64",
+      "TaxaInflacao": "float64",
+      "PIB": "float64",
+      "Target": "object",
+      "target_class": "string",
+      "target": "int64",
+      "target_excl_enrolled": "Int64"
+    }
+  },
+  "decisions_applied": {
+    "D1": {
+      "target_principal": "Desistente = 1; Graduado + Matriculado = 0",
+      "coluna": "target",
+      "alvo_sensibilidade": "Desistente = 1; Graduado = 0; Matriculado = excluido",
+      "coluna_sensibilidade": "target_excl_enrolled"
+    },
+    "D4": "Correcao aplicada somente na preparacao; arquivo original intacto.",
+    "D5": "Copia de trabalho em data/raw; processado em data/processed.",
+    "D9": "Uma linha = um estudante; duplicata exata removida apos a separacao bruto/processado."
+  }
+}

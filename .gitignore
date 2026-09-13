@@ -1,0 +1,13 @@
+# Ambiente virtual e caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Artefatos de modelo (regeneráveis) — descomente se preferir não versionar
+# models/*.joblib
+
+# Sistema
+.DS_Store
+Thumbs.db
