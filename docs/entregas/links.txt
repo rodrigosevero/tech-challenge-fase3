@@ -1,0 +1,63 @@
+================================================================================
+ TECH CHALLENGE - FASE 3 | POS-GRADUACAO EM MACHINE LEARNING ENGINEERING (FIAP)
+ Entrega: previsao de evasao de estudantes
+================================================================================
+
+Este e o arquivo .txt solicitado no enunciado, com os tres links da entrega.
+Substitua os campos marcados com <...> antes de enviar.
+
+--------------------------------------------------------------------------------
+1) REPOSITORIO DO GITHUB
+--------------------------------------------------------------------------------
+https://github.com/<SEU_USUARIO>/tech-challenge-fase3
+
+  O repositorio deve conter:
+    - codigo-fonte completo (src/, app/, tests/)
+    - requirements.txt (Python 3.12)
+    - README.md com instrucoes de execucao
+    - PROJECT_PLAN.md com o planejamento e as decisoes metodologicas
+    - notebooks/01_eda_e_modelagem.ipynb (executado)
+    - models/model.joblib e models/model_metadata.json
+    - reports/ (relatorios, tabelas e figuras)
+
+--------------------------------------------------------------------------------
+2) APLICACAO DEPLOYADA NO STREAMLIT
+--------------------------------------------------------------------------------
+https://<NOME-DO-APP>.streamlit.app
+
+  Como publicar (Streamlit Community Cloud):
+    1. Suba o repositorio para o GitHub (git push).
+    2. Acesse https://share.streamlit.io e faca login com o GitHub.
+    3. Clique em "New app" e selecione o repositorio.
+    4. Em "Main file path", informe:  app/streamlit_app.py
+    5. Clique em "Deploy" e aguarde a instalacao das dependencias.
+    6. Copie a URL publica gerada para o campo acima.
+
+  Observacao: o modelo (models/model.joblib) esta versionado no repositorio,
+  portanto a aplicacao nao precisa treinar nada no deploy.
+
+--------------------------------------------------------------------------------
+3) VIDEO EXPLICATIVO (minimo de 5 minutos)
+--------------------------------------------------------------------------------
+<LINK_DO_VIDEO>
+
+  Roteiro completo em: docs/roteiro-video.md
+  Duracao alvo: 7 a 8 minutos.
+
+--------------------------------------------------------------------------------
+RESUMO DO MODELO ENTREGUE
+--------------------------------------------------------------------------------
+  Algoritmo ............: LogisticRegression (class_weight="balanced", C=0.1)
+  Cenario ..............: Early Warning (24 features, 1o semestre)
+  Variavel-alvo ........: Desistente = 1  vs.  Graduado + Matriculado = 0
+  Limiar de decisao ....: 0.40 (escolhido na validacao)
+
+  Desempenho no teste (1.327 estudantes, avaliado uma unica vez):
+    Recall .......: 0.8568
+    F2-score .....: 0.8136
+    ROC-AUC ......: 0.9071
+    Precision ....: 0.6772
+    Accuracy .....: 0.8229
+
+  Diagnostico de ajuste: ajuste_adequado (sem overfitting)
+================================================================================

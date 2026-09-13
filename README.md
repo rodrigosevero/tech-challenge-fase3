@@ -10,10 +10,10 @@ O projeto cobre o ciclo completo: análise exploratória, limpeza e *feature eng
 treino com validação cruzada, análise de *overfitting*/*underfitting*, serialização do
 modelo e **deploy de uma aplicação Streamlit** para uso interativo.
 
-> Status atual: **Fases 1 e 2 concluídas e executadas** — ambiente Python 3.12, pipeline de
-dados com relatório de qualidade, feature engineering, `ColumnTransformer`, comparação de
-6 modelos em 5 cenários com validação cruzada (86 testes passando). Faltam a seleção final do
-modelo, o deploy em Streamlit e o vídeo. Detalhes em [`PROJECT_PLAN.md`](PROJECT_PLAN.md).
+> Status atual: **todas as fases concluídas** — pipeline de dados, modelagem, seleção do
+> modelo final, avaliação única no teste, serialização, aplicação Streamlit e roteiro do
+> vídeo (**149 testes passando**). Falta apenas publicar no GitHub, no Streamlit Cloud e
+> gravar o vídeo. Detalhes em [`PROJECT_PLAN.md`](PROJECT_PLAN.md).
 
 ## 🎓 Contexto acadêmico
 
@@ -45,7 +45,10 @@ tech-challenge-fase3/
 │   └── entregas/
 │       └── links.txt              # repositório + app + vídeo                 ⏳ Fase 4
 ├── notebooks/
-│   └── 01_eda_e_modelagem.ipynb   # EDA + modelagem                           ⏳ Fase 2/3
+│   └── 01_eda_e_modelagem.ipynb   # EDA + modelagem (executado)               ✅ Fase 3
+├── docs/
+│   ├── roteiro-video.md           # roteiro de gravacao do video              ✅ Fase 4
+│   └── entregas/links.txt         # arquivo .txt da entrega                   ⏳ preencher
 ├── src/
 │   ├── config.py                  # RANDOM_STATE, caminhos, cenários          ✅ Fase 1
 │   ├── schema.py                  # validação de schema                       ✅ Fase 1
@@ -57,14 +60,17 @@ tech-challenge-fase3/
 │   ├── preprocessing.py           # ColumnTransformer / Pipeline              ✅ Fase 2
 │   ├── evaluate.py                # métricas, tabelas e gráficos             ✅ Fase 2
 │   ├── train.py                   # CV + GridSearch + cenários               ✅ Fase 2
-│   └── predict.py                 # inferência                                ⏳ Fase 3
+│   ├── select_model.py            # modelo final + teste único + limiar      ✅ Fase 3
+│   ├── predict.py                 # inferência (usada pelo app e testes)      ✅ Fase 3
+│   └── form_spec.py               # campos do formulário da aplicação        ✅ Fase 4
 ├── app/
-│   └── streamlit_app.py           # aplicação de deploy                       ⏳ Fase 4
-├── models/                        # model.joblib + metadados                   ⏳ Fase 3
+│   └── streamlit_app.py           # aplicação de deploy                       ✅ Fase 4
+├── models/                        # model.joblib + metadados                   ✅ Fase 3
 ├── reports/
 │   ├── tables/                    # CSV com os resultados da Fase 2           ✅ Fase 2
 │   ├── figures/                   # gráficos (Fase 2: 13 PNGs)                ✅ Fase 2
 │   ├── phase2_model_comparison.md # relatório de modelos e cenários           ✅ Fase 2
+│   ├── phase3_final_model.md      # relatório do modelo final                 ✅ Fase 3
 │   ├── data_quality_report.md     # relatório de qualidade                    ✅ Fase 1
 │   └── data_quality_report.json   # versão machine-readable                    ✅ Fase 1
 ├── tests/
@@ -73,7 +79,11 @@ tech-challenge-fase3/
 │   ├── test_schema.py             # validação de schema                        ✅ Fase 1
 │   ├── test_data_integrity.py     # SHA-256 da base bruta                     ✅ Fase 1
 │   ├── test_features.py           # features derivadas                         ✅ Fase 2
-│   └── test_preprocessing.py      # ColumnTransformer e Pipeline              ✅ Fase 2
+│   ├── test_preprocessing.py      # ColumnTransformer e Pipeline              ✅ Fase 2
+│   ├── test_select_model.py       # seleção, diagnóstico e limiar              ✅ Fase 3
+│   ├── test_predict.py            # API de inferência                          ✅ Fase 3
+│   ├── test_form_spec.py          # campos do formulário                       ✅ Fase 4
+│   └── test_app.py                # exemplos e integração com o app            ✅ Fase 4
 ├── requirements.txt               ✅ Fase 1
 ├── pytest.ini                     ✅ Fase 1
 ├── PROJECT_PLAN.md
@@ -163,10 +173,15 @@ pytest 8.3.4
    python -m src.train
    ```
 
-7. Executar o notebook de análise no VS Code (Fase 3):
+7. Executar a Fase 3 (seleciona o modelo, avalia o teste **uma vez** e serializa):
+   ```bash
+   python -m src.select_model
+   ```
+
+8. Abrir o notebook executável no VS Code:
    `notebooks/01_eda_e_modelagem.ipynb`
 
-8. Executar a aplicação localmente (Fase 4):
+9. Executar a aplicação Streamlit:
    ```bash
    streamlit run app/streamlit_app.py
    ```
@@ -247,3 +262,74 @@ para a Fase 3.
   quase não muda nada (−0,15 p.p.) — contribuição marginal (D7).
 
 Relatório completo: [`reports/phase2_model_comparison.md`](reports/phase2_model_comparison.md)
+
+**Resultado da Fase 3 (modelo final)**
+
+| Item | Valor |
+|---|---|
+| Modelo | `LogisticRegression(class_weight="balanced", C=0.1)` |
+| Cenário | **Early Warning** (24 features) — deploy (D2) |
+| Limiar de decisão | **0,40** (escolhido na validação, nunca no teste) |
+
+| Nível | F2 | Recall | Precision | ROC-AUC |
+|---|---|---|---|---|
+| Treino | 0,8070 | — | — | — |
+| Validação cruzada | 0,7712 | 0,7817 | 0,7336 | 0,8933 |
+| **Teste (uma vez, n=1.327)** | **0,8136** | **0,8568** | 0,6772 | **0,9071** |
+
+**Matriz de confusão no teste:** 727 verdadeiros negativos · 174 falsos positivos ·
+**61 evasões não detectadas** · 365 evasões corretas.
+
+**Diagnóstico: `ajuste_adequado`** — gap treino−CV de 0,0358 (tolerância 0,05) e o teste
+foi até **melhor** que a validação (gap CV−teste = −0,0424). Não há sinal de overfitting.
+
+**A decisão de negócio do limiar:** baixar de 0,50 para 0,40 faz o modelo capturar
+**19 evasões a mais** (61 em vez de 80 não detectadas), ao custo de 57 alarmes falsos.
+Como o objetivo é retenção, a troca se justifica (D8).
+
+Relatório completo: [`reports/phase3_final_model.md`](reports/phase3_final_model.md)
+
+---
+
+## 🖥️ Aplicação Streamlit
+
+![Demonstração da aplicação](reports/figures/app_streamlit_risco_baixo.png)
+
+A aplicação recebe os dados de um estudante (cadastro, financeiro, ingresso e 1º semestre) e
+devolve a **probabilidade de evasão**, a faixa de risco e uma recomendação de ação.
+
+**Princípios de uso (D10):** o resultado é apresentado como **risco**, nunca como decisão
+automática. A aplicação exibe sempre o aviso de que se trata de uma estimativa, útil para
+**priorizar** o acompanhamento humano.
+
+```bash
+streamlit run app/streamlit_app.py
+```
+
+Na barra lateral há dois botões de exemplo — **risco alto** e **risco baixo** — para
+demonstrar os extremos rapidamente. Verificado em execução:
+
+| Perfil | Probabilidade | Faixa |
+|---|---|---|
+| Devedor, mensalidades em atraso, sem bolsa, 0 aprovações | **98,7%** | 🔴 Alto |
+| Mensalidades em dia, bolsista, 6 aprovações, média 15,5 | **10,1%** | 🟢 Baixo |
+
+### Deploy no Streamlit Community Cloud
+
+1. Publique o repositório no GitHub (`git push`).
+2. Acesse <https://share.streamlit.io> e entre com a conta do GitHub.
+3. **New app** → selecione o repositório.
+4. Em *Main file path*, informe `app/streamlit_app.py`.
+5. **Deploy** e aguarde a instalação das dependências.
+6. Copie a URL pública para `docs/entregas/links.txt`.
+
+> O modelo (`models/model.joblib`) está versionado, então o deploy **não** treina nada.
+
+---
+
+## 📹 Vídeo e entrega
+
+- **Roteiro de gravação:** [`docs/roteiro-video.md`](docs/roteiro-video.md) — bloco a bloco,
+  com marcação de tempo e os números reais do projeto.
+- **Arquivo de entrega:** [`docs/entregas/links.txt`](docs/entregas/links.txt) — repositório,
+  aplicação e vídeo (preencher os links antes de enviar).

@@ -8,8 +8,8 @@
 > |---|---|---|
 > | 1 | Ambiente, organização, carga, limpeza, correção, testes, relatório | ✅ concluída e executada |
 > | 2 | Baseline, modelos, validação cruzada, cenários e ablações | ✅ concluída (ver §22) |
-> | 3 | Seleção do modelo, teste único, over/underfitting, artefatos | ⏳ aguardando autorização |
-> | 4 | Streamlit, documentação, deploy, roteiro do vídeo | ⏳ |
+> | 3 | Seleção do modelo, teste único, over/underfitting, artefatos | ✅ concluída (ver §23) |
+> | 4 | Streamlit, documentação, deploy, roteiro do vídeo | ✅ concluída (ver §24) |
 >
 > As decisões **D1–D10** foram confirmadas pelo autor e estão registradas na §20. As seções
 > abaixo foram atualizadas para refletir essas decisões.
@@ -630,8 +630,17 @@ tech-challenge-fase3/
   cada nota com o `Aprovado` do **mesmo semestre** (`GRADE_APPROVED_COLUMNS`). Antes, a nota do
   2º semestre era comparada com o aprovado do 1º, o que gerava 42 falsas violações.
 - **Fase 2:** implementados `features.py`, `preprocessing.py`, `evaluate.py` e `train.py`,
-  com testes novos (`test_features.py` e `test_preprocessing.py`) — **86 testes passando**.
-  Ainda **não existem**: `predict.py` (Fase 3) e `app/streamlit_app.py` (Fase 4).
+  com testes novos (`test_features.py` e `test_preprocessing.py`).
+- **Fase 3:** implementados `select_model.py` e `predict.py`, com testes novos
+  (`test_select_model.py` e `test_predict.py`) — **111 testes passando**. Artefatos:
+  `models/model.joblib`, `models/model_metadata.json`, `reports/phase3_final_model.md`,
+  6 figuras e 3 tabelas, e o notebook executado (`notebooks/01_eda_e_modelagem.ipynb`,
+  14 células, 0 erros).
+- **Fase 4:** implementados `app/streamlit_app.py` e `src/form_spec.py`, com testes novos
+  (`test_form_spec.py` e `test_app.py`) — **149 testes passando**. Documentação e roteiro do
+  vídeo em `docs/`.
+- **Restam apenas ações do autor:** publicar no GitHub, publicar no Streamlit Community Cloud
+  e gravar o vídeo (roteiro pronto em `docs/roteiro-video.md`).
 
 ---
 
@@ -645,7 +654,7 @@ tech-challenge-fase3/
 - [x] Correção das colunas `...SemestreGrau` implementada e coberta por testes automatizados.
 - [x] Base bruta preservada, com verificação de integridade por SHA-256.
 - [x] Relatório de qualidade de dados produzido pelo pipeline. *(executado)*
-- [ ] Notebook `01_eda_e_modelagem.ipynb` executável de ponta a ponta no VS Code. *(Fases 2–3)*
+- [x] Notebook `01_eda_e_modelagem.ipynb` executável de ponta a ponta no VS Code (14 células, 0 erros).
 
 **Modelagem**
 - [x] Divisão estratificada 70/30 documentada e **congelada** em disco (`train_test_split.json`).
@@ -653,21 +662,24 @@ tech-challenge-fase3/
 - [x] Comparação entre `DummyClassifier`, Regressão Logística, Random Forest e Gradient Boosting.
 - [x] Cenários **Early Warning × Completo** e ablações (financeiras e macroeconômicas).
 - [x] Métricas: Accuracy, Precision, Recall, F1, **F2**, ROC-AUC (classe positiva = evasão).
-- [ ] Matriz de confusão do modelo final. *(Fase 3)*
-- [ ] Análise de overfitting/underfitting com curvas de aprendizado/validação. *(Fase 3 — o gap treino−CV já está reportado na §22)*
-- [ ] Tabela final treino × CV × teste e escolha do modelo justificada por escrito.
+- [x] Matriz de confusão do modelo final.
+- [x] Análise de overfitting/underfitting com curvas de aprendizado e de validação.
+- [x] Avaliação do conjunto de teste **uma única vez**, com limiar congelado.
+- [x] Tabela final treino × CV × teste e escolha do modelo justificada por escrito (§23).
 
 **Deploy**
-- [ ] `models/model.joblib` + `model_metadata.json` gerados.
-- [ ] `app/streamlit_app.py` funcionando localmente.
+- [x] `models/model.joblib` + `model_metadata.json` gerados.
+- [x] `app/streamlit_app.py` funcionando localmente (validado no navegador).
 - [ ] App publicado no Streamlit Community Cloud com URL pública, preferencialmente com o modelo **Early Warning** (D10).
-- [ ] Teste com entradas de "risco alto" e "risco baixo" para validar a demonstração.
+- [x] Teste com entradas de "risco alto" e "risco baixo" para validar a demonstração.
 
 **Documentação e entrega**
-- [ ] `README.md` completo (objetivo, estrutura, como executar, resultados, limitações).
-- [ ] `PROJECT_PLAN.md` atualizado com os números finais.
-- [ ] Repositório publicado no GitHub.
-- [ ] `docs/entregas/links.txt` com repositório + app + vídeo.
+- [x] `README.md` completo (objetivo, estrutura, como executar, resultados, limitações).
+- [x] `PROJECT_PLAN.md` atualizado com os números finais.
+- [x] Notebook executável com as análises principais.
+- [ ] Repositório publicado no GitHub. *(pendente: `git push` do autor)*
+- [x] `docs/entregas/links.txt` criado com repositório + app + vídeo. *(links a preencher)*
+- [x] Roteiro do vídeo redigido em `docs/roteiro-video.md` (bloco a bloco, ~8 min).
 - [ ] Vídeo de **no mínimo 5 minutos** gravado, mostrando a app deployada.
 
 ---
@@ -767,3 +779,146 @@ Executado com `python -m src.train`. Divisão congelada: **3.096 linhas de trein
   Forest), o que não compensa a instabilidade.
 - O aviso `OptimizeWarning: Unknown solver options: iprint` (scipy novo × scikit-learn 1.5.2)
   é benigno e foi filtrado em `src/train.py` e no `pytest.ini`.
+
+---
+
+## 23. Resultados da Fase 3 (modelo final e teste único)
+
+Executado com `python -m src.select_model`.
+
+### 23.1 Modelo final escolhido
+
+| Item | Valor |
+|---|---|
+| Modelo | `LogisticRegression(class_weight="balanced", C=0.1)` |
+| Cenário | **Early Warning** (24 features) — candidato ao deploy (D2) |
+| Alvo | `Desistente = 1` vs. `Graduado + Matriculado = 0` (D1) |
+| Limiar de decisão | **0,40** — escolhido na validação (*out-of-fold*), nunca no teste (D8) |
+
+**Por que este modelo (seção 13, definida antes de ver o teste):** o melhor F2 da Fase 2 no
+cenário Early Warning era do `random_forest_balanced` (0,7721), mas o `logistic_balanced`
+ficou a menos de 1 p.p. (0,7712) **com gap treino−CV 5× menor** (0,0110 contra 0,0581).
+Pela regra de desempate, escolheu-se o modelo **mais estável e interpretável**.
+
+### 23.2 Desempenho nos três níveis (F2)
+
+| Nível | F2 | Recall | Precision | ROC-AUC |
+|---|---|---|---|---|
+| Treino | 0,8070 | — | — | — |
+| Validação cruzada (média) | 0,7712 | 0,7817 | 0,7336 | 0,8933 |
+| **Teste (uma vez)** | **0,8136** | **0,8568** | 0,6772 | **0,9071** |
+
+- Gap treino − CV = **0,0358** (abaixo da tolerância de 0,05)
+- Gap CV − teste = **−0,0424** (o teste foi **melhor** que a validação → sem sinal de overfitting)
+- **Diagnóstico: `ajuste_adequado`**
+
+### 23.3 Matriz de confusão no teste (limiar 0,40, n = 1.327)
+
+| | Previsto não evasão | Previsto evasão |
+|---|---|---|
+| **Real não evasão** | 727 (TN) | 174 (FP) |
+| **Real evasão** | **61 (FN)** | **365 (TP)** |
+
+**O efeito do limiar (a decisão de negócio):**
+
+| Limiar | Recall | Precision | F2 | Evasões não detectadas |
+|---|---|---|---|---|
+| 0,50 (padrão) | 0,8122 | 0,7473 | 0,7983 | 80 |
+| **0,40 (escolhido)** | **0,8568** | 0,6772 | **0,8136** | **61** |
+
+Baixar o limiar de 0,50 para 0,40 faz o modelo **capturar 19 evasões a mais** (61 em vez de
+80 não detectadas), ao custo de 57 alarmes falsos adicionais. Como o objetivo é **retenção**,
+perder um evadido custa mais do que um contato desnecessário — a troca se justifica (D8).
+
+### 23.4 Diagnóstico de overfitting / underfitting
+
+- **Curva de aprendizado** (`phase3_curva_aprendizado.png`): as curvas de treino e validação
+  convergem e o gap **diminui** conforme o volume de treino cresce → não há overfitting.
+- **Curva de validação** para `C` (`phase3_curva_validacao_C.png`): mostra o ponto de virada
+  em que regularização menor começa a não trazer ganho — justificando o `C=0,1` escolhido.
+- **Contraste didático:** o `RandomForest` padrão da Fase 2 (F2 de treino = 1,0000 contra
+  0,7419 na validação) é o caso de overfitting documentado; a Regressão Logística
+  balanceada não apresenta o problema.
+
+### 23.5 Artefatos gerados
+
+| Arquivo | Conteúdo |
+|---|---|
+| `models/model.joblib` | Pipeline completo (engineering + pré-processamento + modelo) |
+| `models/model_metadata.json` | Metadados: limiar, features, métricas, ambiente, diagnóstico |
+| `reports/phase3_final_model.md` | Relatório da Fase 3 |
+| `reports/figures/phase3_*.png` | 6 figuras (confusão, ROC, PR, limiar, aprendizado, validação) |
+| `reports/tables/phase3_*.csv` | 3 tabelas (limiar, curva de aprendizado, curva de validação) |
+| `notebooks/01_eda_e_modelagem.ipynb` | Notebook executado (14 células, 0 erros) |
+
+### 23.6 Inferência
+
+`src/predict.py` expõe `predict_risk()`, usada pelo app e pelos testes. Verificação manual:
+
+| Perfil | Probabilidade | Faixa |
+|---|---|---|
+| Sinais de risco (devedor, sem bolsa, 0 aprovações) | **98,7%** | Alto |
+| Bom desempenho (em dia, bolsista, 6 aprovações) | **10,6%** | Baixo |
+
+> O resultado é apresentado sempre como **risco** e acompanhado de uma recomendação de ação —
+nunca como decisão automática sobre o estudante (D10).
+
+---
+
+## 24. Entrega final (Fase 4)
+
+### 24.1 Aplicação Streamlit
+
+| Arquivo | Papel |
+|---|---|
+| `app/streamlit_app.py` | Interface: formulário, resultado e transparência do modelo |
+| `src/form_spec.py` | Especificação dos campos (testável sem subir a interface) |
+| `.streamlit/config.toml` | Tema e execução headless |
+
+**Decisões de interface (D10):**
+
+- O resultado é sempre apresentado como **risco**, acompanhado de uma recomendação de ação e
+  de um aviso explícito de que **não é uma decisão** sobre o estudante.
+- O formulário é montado a partir do `model_metadata.json`: aparecem **apenas** os campos que
+  o modelo usa. Se o cenário mudasse para *Completo*, o 2º semestre surgiria automaticamente.
+- A aplicação **não treina** nem reimplementa transformações: consome `src.predict.predict_risk`,
+  que carrega o `Pipeline` completo do `.joblib`.
+- Dois botões de exemplo (risco alto / risco baixo) facilitam a demonstração no vídeo.
+- Se o modelo não existir, o app exibe instruções em vez de falhar.
+
+**Validação em execução (navegador):**
+
+| Perfil | Probabilidade | Faixa |
+|---|---|---|
+| Devedor, mensalidades em atraso, sem bolsa, 0 aprovações | **98,7%** | 🔴 Alto |
+| Mensalidades em dia, bolsista, 6 aprovações, média 15,5 | **10,1%** | 🟢 Baixo |
+
+### 24.2 Documentação e entrega
+
+| Arquivo | Conteúdo |
+|---|---|
+| `docs/roteiro-video.md` | Roteiro do vídeo em 8 blocos cronometrados, com falas sugeridas e os números reais |
+| `docs/entregas/links.txt` | Arquivo `.txt` exigido no enunciado (repositório + app + vídeo) |
+| `reports/figures/app_streamlit_risco_baixo.png` | Captura da aplicação em execução |
+
+### 24.3 Deploy (Streamlit Community Cloud)
+
+1. `git push` do repositório para o GitHub.
+2. <https://share.streamlit.io> → **New app** → selecionar o repositório.
+3. *Main file path*: `app/streamlit_app.py`.
+4. **Deploy** e copiar a URL pública para `docs/entregas/links.txt`.
+
+> O modelo está versionado (`models/model.joblib`), então o deploy não treina nada e
+> inicia em segundos. `requirements.txt` já inclui o Streamlit.
+
+### 24.4 Ações pendentes do autor
+
+| # | Ação |
+|---|---|
+| 1 | Revisar e subir o repositório para o GitHub (`git push`) |
+| 2 | Publicar no Streamlit Community Cloud e registrar a URL |
+| 3 | Gravar o vídeo seguindo `docs/roteiro-video.md` |
+| 4 | Preencher os três links em `docs/entregas/links.txt` |
+
+---
+
