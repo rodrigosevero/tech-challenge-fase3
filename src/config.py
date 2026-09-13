@@ -64,6 +64,9 @@ CV_COMPARISON_CSV: Path = TABLES_DIR / "phase2_cv_comparison.csv"
 TUNED_COMPARISON_CSV: Path = TABLES_DIR / "phase2_tuned_comparison.csv"
 PHASE2_REPORT_MD: Path = REPORTS_DIR / "phase2_model_comparison.md"
 
+#: Saida da Fase 3 (modelo final, teste unico e diagnostico).
+PHASE3_REPORT_MD: Path = REPORTS_DIR / "phase3_final_model.md"
+
 MODEL_PATH: Path = MODELS_DIR / "model.joblib"
 MODEL_METADATA_PATH: Path = MODELS_DIR / "model_metadata.json"
 

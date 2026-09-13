@@ -1,0 +1,171 @@
+{
+  "trained_at": "2026-09-13T13:46:28+00:00",
+  "model_name": "logistic_balanced",
+  "scenario": "early_warning",
+  "scenario_label": "Early Warning",
+  "target_column": "target",
+  "target_definition": "Desistente = 1; Graduado + Matriculado = 0 (D1)",
+  "random_state": 42,
+  "test_size": 0.3,
+  "n_splits": 5,
+  "best_params": {
+    "model__C": "0.1"
+  },
+  "decision_threshold": 0.4,
+  "input_columns": [
+    "EstadoCivil",
+    "Curso",
+    "QualificacaoAnterior",
+    "Nacionalidade",
+    "Genero",
+    "NecessidadesEspeciais",
+    "Devedor",
+    "MensalidadesEmDia",
+    "Bolsista",
+    "International",
+    "NotaAdmissao",
+    "QualificacaoAnteriorGrau",
+    "UnidadesCurriculares1SemestreCreditado",
+    "UnidadesCurriculares1SemestreInscrito",
+    "UnidadesCurriculares1SemestreAvaliacoes",
+    "UnidadesCurriculares1SemestreAprovado",
+    "UnidadesCurriculares1SemestreGrau",
+    "UnidadesCurriculares1SemestreSemAvaliacoes",
+    "TaxaDesemprego",
+    "TaxaInflacao",
+    "PIB"
+  ],
+  "feature_columns_after_engineering": [
+    "EstadoCivil",
+    "Curso",
+    "QualificacaoAnterior",
+    "Nacionalidade",
+    "Genero",
+    "NecessidadesEspeciais",
+    "Devedor",
+    "MensalidadesEmDia",
+    "Bolsista",
+    "International",
+    "NotaAdmissao",
+    "QualificacaoAnteriorGrau",
+    "UnidadesCurriculares1SemestreCreditado",
+    "UnidadesCurriculares1SemestreInscrito",
+    "UnidadesCurriculares1SemestreAvaliacoes",
+    "UnidadesCurriculares1SemestreAprovado",
+    "UnidadesCurriculares1SemestreGrau",
+    "UnidadesCurriculares1SemestreSemAvaliacoes",
+    "TaxaDesemprego",
+    "TaxaInflacao",
+    "PIB",
+    "taxa_aprovacao_1sem",
+    "disciplinas_nao_aprovadas_1sem",
+    "razao_avaliacoes_inscrito_1sem"
+  ],
+  "n_features": 24,
+  "selection_justification": {
+    "scenario": "early_warning",
+    "scenario_label": "Early Warning",
+    "best_by_f2": "random_forest_balanced",
+    "best_f2": 0.7720912257797462,
+    "chosen_model": "logistic_balanced",
+    "chosen_f2": 0.7711985670102603,
+    "chosen_gap": 0.0110099717261726,
+    "margin": 0.01,
+    "within_margin": [
+      "logistic_balanced",
+      "random_forest_balanced"
+    ],
+    "reason": "Empate tecnico dentro da margem de 0.01 em F2; escolhido o modelo com menor gap treino-CV (mais estavel e mais interpretavel)."
+  },
+  "train_metrics": {
+    "threshold": 0.4,
+    "accuracy": 0.8207364341085271,
+    "precision": 0.6760224538893344,
+    "recall": 0.8480885311871227,
+    "f1": 0.7523427041499331,
+    "f2": 0.8070074669730041,
+    "roc_auc": 0.9012519455457769,
+    "tn": 1698,
+    "fp": 404,
+    "fn": 151,
+    "tp": 843
+  },
+  "cv_metrics": {
+    "accuracy": {
+      "mean": 0.8381802074104956,
+      "std": 0.013963598902247326,
+      "train_mean": 0.8481107937777146
+    },
+    "precision": {
+      "mean": 0.7336100739852202,
+      "std": 0.02848127991714727,
+      "train_mean": 0.7499573482938748
+    },
+    "recall": {
+      "mean": 0.7816912847063601,
+      "std": 0.02553080278232754,
+      "train_mean": 0.7907439714294744
+    },
+    "f1": {
+      "mean": 0.7563325834501334,
+      "std": 0.018018967297024527,
+      "train_mean": 0.7697707309442878
+    },
+    "f2": {
+      "mean": 0.7711985670102603,
+      "std": 0.019968252661707292,
+      "train_mean": 0.782208538736433
+    },
+    "roc_auc": {
+      "mean": 0.893271481950029,
+      "std": 0.013911631739447658,
+      "train_mean": 0.9015125564233009
+    }
+  },
+  "test_metrics_threshold_tuned": {
+    "threshold": 0.4,
+    "accuracy": 0.8229088168801808,
+    "precision": 0.6771799628942486,
+    "recall": 0.8568075117370892,
+    "f1": 0.7564766839378239,
+    "f2": 0.8136424431564868,
+    "roc_auc": 0.9071454252708258,
+    "tn": 727,
+    "fp": 174,
+    "fn": 61,
+    "tp": 365
+  },
+  "test_metrics_threshold_0_5": {
+    "threshold": 0.5,
+    "accuracy": 0.8515448379804069,
+    "precision": 0.7473002159827213,
+    "recall": 0.812206572769953,
+    "f1": 0.7784026996625422,
+    "f2": 0.798338717120443,
+    "roc_auc": 0.9071454252708258,
+    "tn": 784,
+    "fp": 117,
+    "fn": 80,
+    "tp": 346
+  },
+  "diagnosis": {
+    "train_mean": 0.8070074669730041,
+    "cv_mean": 0.7711985670102603,
+    "test_value": 0.8136424431564868,
+    "gap_train_cv": 0.03580889996274372,
+    "gap_cv_test": -0.04244387614622647,
+    "tolerance": 0.05,
+    "diagnosis": "ajuste_adequado",
+    "explanation": "Treino e validacao ficam proximos e em nivel util: nao ha sinal relevante de overfitting nem de underfitting."
+  },
+  "environment": {
+    "python": "3.12.14",
+    "scikit_learn": "1.5.2",
+    "pandas": "2.2.3",
+    "numpy": "2.1.3"
+  },
+  "split": {
+    "n_train": 3096,
+    "n_test": 1327
+  }
+}

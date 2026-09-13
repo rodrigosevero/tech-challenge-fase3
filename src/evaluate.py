@@ -23,14 +23,22 @@ import pandas as pd  # noqa: E402
 import seaborn as sns  # noqa: E402
 from sklearn.metrics import (  # noqa: E402
     accuracy_score,
+    average_precision_score,
+    confusion_matrix,
     f1_score,
     fbeta_score,
     make_scorer,
+    precision_recall_curve,
     precision_score,
     recall_score,
     roc_auc_score,
+    roc_curve,
 )
-from sklearn.model_selection import cross_validate  # noqa: E402
+from sklearn.model_selection import (  # noqa: E402
+    cross_validate,
+    learning_curve,
+    validation_curve,
+)
 
 from .config import (  # noqa: E402
     FIGURES_DIR,
@@ -346,3 +354,359 @@ def ensure_output_dirs() -> None:
     """Garante que os diretorios de saida existam."""
     FIGURES_DIR.mkdir(parents=True, exist_ok=True)
     TABLES_DIR.mkdir(parents=True, exist_ok=True)
+
+
+# --------------------------------------------------------------------------- #
+# Fase 3: metricas por limiar, matriz de confusao e curvas
+# --------------------------------------------------------------------------- #
+
+
+def compute_threshold_metrics(
+    y_true,
+    y_proba,
+    threshold: float,
+) -> dict:
+    """Metricas completas para um limiar de decisao especifico.
+
+    ``roc_auc`` nao depende do limiar (mede o *ranking*), por isso e calculado
+    uma unica vez a partir das probabilidades.
+    """
+    y_true = np.asarray(y_true)
+    y_proba = np.asarray(y_proba, dtype=float)
+    y_pred = (y_proba >= threshold).astype(int)
+
+    tn, fp, fn, tp = confusion_matrix(
+        y_true, y_pred, labels=[0, 1]
+    ).ravel()
+
+    return {
+        "threshold": float(threshold),
+        "accuracy": float(accuracy_score(y_true, y_pred)),
+        "precision": float(
+            precision_score(
+                y_true, y_pred, pos_label=POSITIVE_LABEL, zero_division=0
+            )
+        ),
+        "recall": float(
+            recall_score(
+                y_true, y_pred, pos_label=POSITIVE_LABEL, zero_division=0
+            )
+        ),
+        "f1": float(
+            f1_score(y_true, y_pred, pos_label=POSITIVE_LABEL, zero_division=0)
+        ),
+        "f2": f2_score(y_true, y_pred),
+        "roc_auc": float(roc_auc_score(y_true, y_proba)),
+        "tn": int(tn),
+        "fp": int(fp),
+        "fn": int(fn),
+        "tp": int(tp),
+    }
+
+
+def threshold_analysis_table(
+    y_true,
+    y_proba,
+    thresholds: Sequence[float],
+) -> pd.DataFrame:
+    """Tabela de metricas para cada limiar avaliado (uso na validacao)."""
+    rows = [compute_threshold_metrics(y_true, y_proba, t) for t in thresholds]
+    return pd.DataFrame(rows)
+
+
+def best_threshold_by(
+    table: pd.DataFrame,
+    metric: str = "f2",
+) -> float:
+    """Limiar que maximiza a metrica escolhida (empate -> o mais proximo de 0,5)."""
+    if table.empty:
+        return 0.5
+    ordered = table.assign(
+        _distance=(table["threshold"] - 0.5).abs()
+    ).sort_values([metric, "_distance"], ascending=[False, True])
+    return float(ordered.iloc[0]["threshold"])
+
+
+def plot_confusion_matrix(
+    y_true,
+    y_pred,
+    path: Path,
+    title: str = "Matriz de confusao",
+) -> Path:
+    """Matriz de confusao em contagens e em proporcao por classe real."""
+    y_true = np.asarray(y_true)
+    y_pred = np.asarray(y_pred)
+    matrix = confusion_matrix(y_true, y_pred, labels=[0, 1])
+    normalized = confusion_matrix(y_true, y_pred, labels=[0, 1], normalize="true")
+
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    figure, axes = plt.subplots(1, 2, figsize=(12, 5))
+    labels = ["Nao evasao (0)", "Evasao (1)"]
+
+    sns.heatmap(
+        matrix,
+        annot=True,
+        fmt="d",
+        cmap="Blues",
+        xticklabels=labels,
+        yticklabels=labels,
+        ax=axes[0],
+        cbar=False,
+    )
+    axes[0].set_title(f"{title} - contagens")
+    axes[0].set_xlabel("Previsto")
+    axes[0].set_ylabel("Real")
+
+    sns.heatmap(
+        normalized,
+        annot=True,
+        fmt=".1%",
+        cmap="Blues",
+        xticklabels=labels,
+        yticklabels=labels,
+        ax=axes[1],
+        cbar=False,
+        vmin=0,
+        vmax=1,
+    )
+    axes[1].set_title(f"{title} - proporcao por classe real")
+    axes[1].set_xlabel("Previsto")
+    axes[1].set_ylabel("Real")
+
+    figure.tight_layout()
+    figure.savefig(path, dpi=150, bbox_inches="tight")
+    plt.close(figure)
+    return path
+
+
+def plot_roc_curve(y_true, y_proba, path: Path, title: str = "Curva ROC") -> Path:
+    """Curva ROC com a area sob a curva (independente do limiar)."""
+    y_true = np.asarray(y_true)
+    y_proba = np.asarray(y_proba, dtype=float)
+    fpr, tpr, _ = roc_curve(y_true, y_proba, pos_label=POSITIVE_LABEL)
+    auc_value = roc_auc_score(y_true, y_proba)
+
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    figure, axis = plt.subplots(figsize=(6.5, 6))
+    axis.plot(fpr, tpr, linewidth=2, label=f"Modelo (AUC = {auc_value:.3f})")
+    axis.plot([0, 1], [0, 1], linestyle="--", color="grey", label="Aleatorio")
+    axis.set_title(title)
+    axis.set_xlabel("Taxa de falsos positivos")
+    axis.set_ylabel("Taxa de verdadeiros positivos (recall)")
+    axis.legend(loc="lower right")
+    axis.grid(alpha=0.3)
+    figure.tight_layout()
+    figure.savefig(path, dpi=150, bbox_inches="tight")
+    plt.close(figure)
+    return path
+
+
+def plot_precision_recall_curve(
+    y_true,
+    y_proba,
+    path: Path,
+    title: str = "Curva Precision-Recall",
+) -> Path:
+    """Curva precision-recall, mais informativa em bases desbalanceadas."""
+    y_true = np.asarray(y_true)
+    y_proba = np.asarray(y_proba, dtype=float)
+    precision, recall, _ = precision_recall_curve(
+        y_true, y_proba, pos_label=POSITIVE_LABEL
+    )
+    average_precision = average_precision_score(
+        y_true, y_proba, pos_label=POSITIVE_LABEL
+    )
+    baseline = float(np.mean(y_true == POSITIVE_LABEL))
+
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    figure, axis = plt.subplots(figsize=(6.5, 6))
+    axis.plot(recall, precision, linewidth=2, label=f"Modelo (AP = {average_precision:.3f})")
+    axis.axhline(
+        baseline,
+        linestyle="--",
+        color="grey",
+        label=f"Baseline (prevalencia = {baseline:.3f})",
+    )
+    axis.set_title(title)
+    axis.set_xlabel("Recall (evasao)")
+    axis.set_ylabel("Precision (evasao)")
+    axis.legend(loc="lower left")
+    axis.grid(alpha=0.3)
+    figure.tight_layout()
+    figure.savefig(path, dpi=150, bbox_inches="tight")
+    plt.close(figure)
+    return path
+
+
+def plot_threshold_tradeoff(
+    table: pd.DataFrame,
+    path: Path,
+    chosen_threshold: float | None = None,
+    title: str = "Metricas x limiar de decisao",
+) -> Path:
+    """Mostra como precision, recall, F1 e F2 variam com o limiar (D8)."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    figure, axis = plt.subplots(figsize=(9, 6))
+    for metric in ("precision", "recall", "f1", "f2"):
+        if metric in table.columns:
+            axis.plot(
+                table["threshold"], table[metric], marker="o", label=metric.upper()
+            )
+    if chosen_threshold is not None:
+        axis.axvline(
+            chosen_threshold,
+            linestyle="--",
+            color="black",
+            label=f"Limiar escolhido = {chosen_threshold:.2f}",
+        )
+    axis.set_title(title)
+    axis.set_xlabel("Limiar de decisao (probabilidade de evasao)")
+    axis.set_ylabel("Valor da metrica")
+    axis.set_ylim(0, 1)
+    axis.legend(loc="best")
+    axis.grid(alpha=0.3)
+    figure.tight_layout()
+    figure.savefig(path, dpi=150, bbox_inches="tight")
+    plt.close(figure)
+    return path
+
+
+def plot_learning_curve_analysis(
+    estimator,
+    X: pd.DataFrame,
+    y: pd.Series,
+    cv,
+    path: Path,
+    scoring,
+    train_sizes: Sequence[float] = (0.15, 0.3, 0.45, 0.6, 0.8, 1.0),
+    n_jobs: int = 1,
+    title: str = "Curva de aprendizado",
+) -> tuple[Path, pd.DataFrame]:
+    """Curva de aprendizado (usa **apenas** o treino).
+
+    Evidencia overfitting (gap que nao fecha com mais dados) e underfitting
+    (ambas as curvas baixas e proximas).
+    """
+    sizes, train_scores, validation_scores = learning_curve(
+        estimator,
+        X,
+        y,
+        cv=cv,
+        scoring=scoring,
+        train_sizes=list(train_sizes),
+        n_jobs=n_jobs,
+        error_score="raise",
+        shuffle=False,
+    )
+
+    table = pd.DataFrame(
+        {
+            "train_size": sizes,
+            "train_mean": train_scores.mean(axis=1),
+            "train_std": train_scores.std(axis=1),
+            "cv_mean": validation_scores.mean(axis=1),
+            "cv_std": validation_scores.std(axis=1),
+        }
+    )
+    table["gap"] = table["train_mean"] - table["cv_mean"]
+
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    figure, axis = plt.subplots(figsize=(9, 6))
+    axis.plot(table["train_size"], table["train_mean"], marker="o", label="Treino")
+    axis.fill_between(
+        table["train_size"],
+        table["train_mean"] - table["train_std"],
+        table["train_mean"] + table["train_std"],
+        alpha=0.15,
+    )
+    axis.plot(
+        table["train_size"], table["cv_mean"], marker="s", label="Validacao cruzada"
+    )
+    axis.fill_between(
+        table["train_size"],
+        table["cv_mean"] - table["cv_std"],
+        table["cv_mean"] + table["cv_std"],
+        alpha=0.15,
+    )
+    axis.set_title(title)
+    axis.set_xlabel("Numero de exemplos de treino")
+    axis.set_ylabel("F2 (evasao)")
+    axis.set_ylim(0, 1)
+    axis.legend(loc="lower right")
+    axis.grid(alpha=0.3)
+    figure.tight_layout()
+    figure.savefig(path, dpi=150, bbox_inches="tight")
+    plt.close(figure)
+    return path, table
+
+
+def plot_validation_curve_analysis(
+    estimator,
+    X: pd.DataFrame,
+    y: pd.Series,
+    param_name: str,
+    param_range: Sequence,
+    cv,
+    path: Path,
+    scoring,
+    n_jobs: int = 1,
+    title: str = "Curva de validacao",
+) -> tuple[Path, pd.DataFrame]:
+    """Curva de validacao para um hiperparametro-chave (usa apenas o treino)."""
+    train_scores, validation_scores = validation_curve(
+        estimator,
+        X,
+        y,
+        param_name=param_name,
+        param_range=list(param_range),
+        cv=cv,
+        scoring=scoring,
+        n_jobs=n_jobs,
+        error_score="raise",
+    )
+
+    table = pd.DataFrame(
+        {
+            "param_value": [str(value) for value in param_range],
+            "train_mean": train_scores.mean(axis=1),
+            "cv_mean": validation_scores.mean(axis=1),
+            "cv_std": validation_scores.std(axis=1),
+        }
+    )
+    table["gap"] = table["train_mean"] - table["cv_mean"]
+
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    positions = np.arange(len(param_range))
+    figure, axis = plt.subplots(figsize=(9, 6))
+    axis.plot(positions, table["train_mean"], marker="o", label="Treino")
+    axis.plot(positions, table["cv_mean"], marker="s", label="Validacao cruzada")
+    axis.fill_between(
+        positions,
+        table["cv_mean"] - table["cv_std"],
+        table["cv_mean"] + table["cv_std"],
+        alpha=0.15,
+    )
+    axis.set_xticks(positions)
+    axis.set_xticklabels(table["param_value"])
+    axis.set_title(f"{title}: {param_name}")
+    axis.set_xlabel(param_name)
+    axis.set_ylabel("F2 (evasao)")
+    axis.set_ylim(0, 1)
+    axis.legend(loc="lower right")
+    axis.grid(alpha=0.3)
+    figure.tight_layout()
+    figure.savefig(path, dpi=150, bbox_inches="tight")
+    plt.close(figure)
+    return path, table
