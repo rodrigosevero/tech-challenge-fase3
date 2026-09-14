@@ -1,0 +1,32 @@
+# --------------------------------------------------------------------------- #
+# Arquivos/formatos que NAO devem entrar no contexto de build da imagem Docker
+# --------------------------------------------------------------------------- #
+
+# Versionamento
+.git
+.gitignore
+
+# Ambientes virtuais
+.venv
+venv
+env
+
+# Caches Python / pytest
+__pycache__
+**/__pycache__
+*.py[cod]
+.pytest_cache
+.ipynb_checkpoints
+
+# Arquivos temporarios / de sistema operacional
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+*~
+*.bak
+
+# IMPORTANTE:
+# - models/model.joblib, models/model_metadata.json  -> NECESSARIOS ao app (mantidos)
+# - reports/, data/processed/, src/, app/            -> NECESSARIOS ao app (mantidos)
