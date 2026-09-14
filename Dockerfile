@@ -16,6 +16,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # --- Diretorio de trabalho (requisito: projeto copiado para /app) ---------- #
 WORKDIR /app
 
+
 # --- Dependencias (camada separada para melhor cache no rebuild) ----------- #
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
