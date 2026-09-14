@@ -10,8 +10,7 @@ O projeto cobre o ciclo completo: análise exploratória, limpeza e *feature eng
 treino com validação cruzada, análise de *overfitting*/*underfitting*, serialização do
 modelo e **deploy de uma aplicação Streamlit** para uso interativo.
 
-> Status atual: **todas as fases concluídas** — pipeline de dados, modelagem, seleção do
-> modelo final, avaliação única no teste, serialização, aplicação Streamlit e roteiro do
+> Status: projeto concluído e publicado — modelo, aplicação Streamlit, documentação e vídeo explicativo disponíveis.
 > vídeo (**149 testes passando**). Falta apenas publicar no GitHub, no Streamlit Cloud e
 > gravar o vídeo. Detalhes em [`PROJECT_PLAN.md`](PROJECT_PLAN.md).
 

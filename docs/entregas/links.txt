@@ -1,14 +1,8 @@
---------------------------------------------------------------------------------
-1) REPOSITORIO DO GITHUB
---------------------------------------------------------------------------------
+1) REPOSITÓRIO DO GITHUB
 https://github.com/rodrigosevero/tech-challenge-fase3
 
---------------------------------------------------------------------------------
-2) APLICACAO DEPLOYADA EM STREAMLIT
---------------------------------------------------------------------------------
+2) APLICAÇÃO STREAMLIT
 https://webflow-evasao.bsd5wo.easypanel.host/
 
---------------------------------------------------------------------------------
-3) VIDEO EXPLICATIVO - MINIMO DE 5 MINUTOS
---------------------------------------------------------------------------------
+3) VÍDEO EXPLICATIVO
 https://www.youtube.com/watch?v=8lgEAN3hR1U
